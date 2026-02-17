@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="https://raw.githubusercontent.com/cisnerosnow/sheen-go/main/logo.png" width="120" alt="Sheen Go" />
+</p>
+
 # Sheen Go
 
 Plugin de Chrome para enviar likes automáticos en TikTok Lives.
