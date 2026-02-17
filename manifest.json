@@ -1,0 +1,37 @@
+{
+  "manifest_version": 3,
+  "name": "Sheen Go",
+  "version": "1.0",
+  "description": "Auto-like on TikTok Lives by holding the L key.",
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Sheen Go",
+    "default_icon": {
+      "16":  "logo.png",
+      "48":  "logo.png",
+      "128": "logo.png"
+    }
+  },
+  "icons": {
+    "16":  "logo.png",
+    "48":  "logo.png",
+    "128": "logo.png"
+  },
+  "content_scripts": [
+    {
+      "matches": ["*://www.tiktok.com/*"],
+      "js": ["content.js"]
+    }
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "permissions": ["activeTab", "scripting", "storage", "tabs"],
+  "host_permissions": ["*://www.tiktok.com/*"],
+  "web_accessible_resources": [
+    {
+      "resources": ["logo.png"],
+      "matches": ["*://www.tiktok.com/*"]
+    }
+  ]
+}

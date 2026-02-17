@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Sheen Go</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      width: 220px;
+      background: #0e0e0e;
+      font-family: 'Segoe UI', sans-serif;
+      color: #fff;
+      padding: 20px 16px 14px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .logo-img {
+      width: 72px;
+      height: auto;
+      border-radius: 12px;
+      box-shadow: 0 0 18px rgba(254, 44, 85, 0.4);
+    }
+
+    .logo-text {
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: 1px;
+      background: linear-gradient(135deg, #fe2c55, #ff6b35);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #444;
+      display: inline-block;
+      margin-right: 6px;
+      transition: background 0.3s;
+    }
+
+    .status-dot.active {
+      background: #00e676;
+      box-shadow: 0 0 6px #00e676;
+    }
+
+    .status-text {
+      font-size: 12px;
+      color: #aaa;
+      display: flex;
+      align-items: center;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 10px;
+      border: none;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.1s;
+      letter-spacing: 0.5px;
+    }
+
+    .btn:active {
+      transform: scale(0.97);
+    }
+
+    .btn-start {
+      background: linear-gradient(135deg, #fe2c55, #ff6b35);
+      color: #fff;
+    }
+
+    .btn-stop {
+      background: #2a2a2a;
+      color: #fe2c55;
+      border: 1px solid #fe2c55;
+      display: none;
+    }
+
+    .made-by {
+      font-size: 10px;
+      color: #555;
+      margin-top: 2px;
+    }
+  </style>
+</head>
+<body>
+  <img src="logo.png" class="logo-img" alt="Sheen Go" />
+  <div class="logo-text">Sheen Go</div>
+
+  <div class="status-text">
+    <span class="status-dot" id="dot"></span>
+    <span id="statusLabel">Inactivo</span>
+  </div>
+
+  <button class="btn btn-start" id="btnStart">▶ START</button>
+  <button class="btn btn-stop" id="btnStop">■ STOP</button>
+
+  <div class="made-by">Made by @cisnerosnow</div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
