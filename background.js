@@ -23,7 +23,7 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
   if (action === 'start') {
     activeTabs.add(tabId);
     saveState();
-    chrome.tabs.sendMessage(tabId, { action: 'start' }, () => {
+    chrome.tabs.sendMessage(tabId, { action: 'start', config: msg.config }, () => {
       // Ignorar error si el content script aun no esta listo
       void chrome.runtime.lastError;
     });

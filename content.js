@@ -1,5 +1,16 @@
-let interval     = null;
+let running      = false;
+let burstTimeout = null;
+let burstIntvl   = null;
 let countTimer   = null;
+
+let cfgLikesMin = 10;
+let cfgLikesMax = 20;
+let cfgPauseMin = 20;
+let cfgPauseMax = 50;
+
+function randInt(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
 
 // ---------- Overlay ----------
 
@@ -101,21 +112,53 @@ function pressL() {
   });
 }
 
+// ---------- Burst logic ----------
+
+function doBurst() {
+  if (!running) return;
+
+  const likes = randInt(cfgLikesMin, cfgLikesMax);
+  let sent = 0;
+
+  burstIntvl = setInterval(() => {
+    if (!running || sent >= likes) {
+      clearInterval(burstIntvl);
+      burstIntvl = null;
+      if (running) {
+        const delay = randInt(cfgPauseMin, cfgPauseMax) * 1000;
+        burstTimeout = setTimeout(doBurst, delay);
+      }
+      return;
+    }
+    pressL();
+    sent++;
+  }, 100);
+}
+
+function stopAll() {
+  running = false;
+  if (burstTimeout) { clearTimeout(burstTimeout);  burstTimeout = null; }
+  if (burstIntvl)   { clearInterval(burstIntvl);   burstIntvl   = null; }
+}
+
 // ---------- Message handler ----------
 
 chrome.runtime.onMessage.addListener((msg) => {
-  if (msg.action === 'start' && !interval && !countTimer) {
+  if (msg.action === 'start' && !running && !countTimer) {
+    if (msg.config) {
+      cfgLikesMin = msg.config.likesMin;
+      cfgLikesMax = msg.config.likesMax;
+      cfgPauseMin = msg.config.pauseMin;
+      cfgPauseMax = msg.config.pauseMax;
+    }
     showOverlay(() => {
-      pressL();
-      interval = setInterval(pressL, 100);
+      running = true;
+      doBurst();
     });
   }
 
   if (msg.action === 'stop') {
     removeOverlay();
-    if (interval) {
-      clearInterval(interval);
-      interval = null;
-    }
+    stopAll();
   }
 });

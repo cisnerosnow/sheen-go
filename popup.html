@@ -11,7 +11,7 @@
     }
 
     body {
-      width: 220px;
+      width: 248px;
       background: #0e0e0e;
       font-family: 'Segoe UI', sans-serif;
       color: #fff;
@@ -88,6 +88,74 @@
       display: none;
     }
 
+    .config {
+      width: 100%;
+      background: #1a1a1a;
+      border: 1px solid #2a2a2a;
+      border-radius: 8px;
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .config-title {
+      font-size: 10px;
+      font-weight: 700;
+      color: #666;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 2px;
+    }
+
+    .config-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .config-label {
+      font-size: 11px;
+      color: #aaa;
+      flex: 1;
+      white-space: nowrap;
+    }
+
+    .config-inputs {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .config-inputs input {
+      width: 44px;
+      background: #0e0e0e;
+      border: 1px solid #333;
+      border-radius: 5px;
+      color: #fff;
+      font-size: 12px;
+      font-family: 'Segoe UI', sans-serif;
+      padding: 3px 5px;
+      text-align: center;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .config-inputs input:focus {
+      border-color: #fe2c55;
+    }
+
+    .config-inputs span {
+      font-size: 11px;
+      color: #555;
+    }
+
+    .config-unit {
+      font-size: 10px;
+      color: #555;
+      margin-left: 2px;
+    }
+
     .made-by {
       font-size: 10px;
       color: #555;
@@ -104,10 +172,32 @@
     <span id="statusLabel">Inactivo</span>
   </div>
 
+  <div class="config">
+    <div class="config-title">Configuración de ráfagas</div>
+
+    <div class="config-row">
+      <span class="config-label">❤ Likes</span>
+      <div class="config-inputs">
+        <input type="number" id="likesMin" value="10" min="1" max="999" />
+        <span>–</span>
+        <input type="number" id="likesMax" value="20" min="1" max="999" />
+      </div>
+    </div>
+
+    <div class="config-row">
+      <span class="config-label">⏱ Pausa (seg)</span>
+      <div class="config-inputs">
+        <input type="number" id="pauseMin" value="20" min="1" max="9999" />
+        <span>–</span>
+        <input type="number" id="pauseMax" value="50" min="1" max="9999" />
+      </div>
+    </div>
+  </div>
+
   <button class="btn btn-start" id="btnStart">▶ START</button>
   <button class="btn btn-stop" id="btnStop">■ STOP</button>
 
-  <div class="made-by">Made by @cisnerosnow</div>
+  <div class="made-by">Made by @cisnerosnow &nbsp;·&nbsp; v. 1.0.0.1</div>
 
   <script src="popup.js"></script>
 </body>

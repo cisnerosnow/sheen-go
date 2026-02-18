@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Sheen Go",
-  "version": "1.0",
-  "description": "Auto-like on TikTok Lives by holding the L key.",
+  "version": "1.0.0.1",
+  "description": "Reacting to Tiktok LIVE",
   "action": {
     "default_popup": "popup.html",
     "default_title": "Sheen Go",
