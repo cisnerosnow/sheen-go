@@ -4,7 +4,7 @@
 
 # Sheen Go
 
-Plugin de Chrome para enviar likes automáticos en TikTok Lives.
+Plugin de Chrome para automatizar interacciones en TikTok Lives: likes, comentarios y respuestas con IA.
 
 **Made by @cisnerosnow**
 
@@ -14,19 +14,13 @@ Plugin de Chrome para enviar likes automáticos en TikTok Lives.
 
 ## ¿Qué hace?
 
-Al presionar **START**, el plugin simula mantener presionada la tecla `L` en la pestaña activa de TikTok, enviando likes de forma continua mientras dure el Live. Al activarse, muestra una pantalla de cuenta regresiva de 5 segundos antes de comenzar.
+Al presionar **START**, el plugin actúa sobre la pestaña activa de TikTok Live con tres módulos independientes que se pueden activar o desactivar por separado:
 
----
+- **Likes** — simula mantener presionada la tecla `L`, enviando ráfagas de likes de forma continua.
+- **Comentarios** — envía una lista de comentarios (formato JSON) uno por uno, con tipeo carácter a carácter y errores orgánicos opcionales para que se vea natural.
+- **Claude** — lee el chat acumulado y genera respuestas automáticas usando la API de Claude (Haiku), ignorando los mensajes del propio usuario.
 
-## Build
-
-Para generar el `.zip` listo para cargar en Chrome, ejecuta:
-
-```
-build.bat
-```
-
-Esto crea `sheen-go.zip` con solo los archivos necesarios del plugin. Asegúrate de que `logo.png` esté en la carpeta antes de correrlo.
+Al activarse muestra una cuenta regresiva de 5 segundos antes de comenzar.
 
 ---
 
@@ -34,22 +28,20 @@ Esto crea `sheen-go.zip` con solo los archivos necesarios del plugin. Asegúrate
 
 > El plugin no está en la Chrome Web Store. Se instala en modo desarrollador.
 
-**Opción A — desde el zip (recomendado para distribución):**
+**Opción A — desde el zip (recomendado):**
 
-1. Corre `build.bat` para generar `sheen-go.zip`
-2. Descomprime el zip en una carpeta
-3. Abre Chrome y ve a `chrome://extensions/`
-4. Activa el **Modo desarrollador** (esquina superior derecha)
-5. Haz click en **"Cargar descomprimida"**
-6. Selecciona la carpeta descomprimida
-
-**Opción B — desde el código fuente directamente:**
-
-1. Coloca tu archivo `logo.png` dentro de la carpeta del proyecto
+1. Descarga y descomprime `sheen-go.zip`
 2. Abre Chrome y ve a `chrome://extensions/`
-3. Activa el **Modo desarrollador**
+3. Activa el **Modo desarrollador** (esquina superior derecha)
 4. Haz click en **"Cargar descomprimida"**
-5. Selecciona la carpeta `sheen-go`
+5. Selecciona la carpeta descomprimida
+
+**Opción B — desde el código fuente:**
+
+1. Abre Chrome y ve a `chrome://extensions/`
+2. Activa el **Modo desarrollador**
+3. Haz click en **"Cargar descomprimida"**
+4. Selecciona la carpeta `sheen-go`
 
 ---
 
@@ -57,12 +49,45 @@ Esto crea `sheen-go.zip` con solo los archivos necesarios del plugin. Asegúrate
 
 1. Entra a un **TikTok Live** en Chrome
 2. Haz click en el ícono del plugin en la barra de Chrome
-3. Presiona **▶ START**
-   - Aparece una pantalla semitransparente con cuenta regresiva de 5 segundos
-   - Al llegar a 0, comienza el envío automático de likes
-4. Presiona **■ STOP** para detenerlo cuando quieras
+3. Configura cada módulo en su pestaña correspondiente
+4. Presiona **▶ START**
+5. Presiona **■ STOP** para detenerlo cuando quieras
 
-> El plugin solo actúa sobre la pestaña donde presionaste START. Otras pestañas no se ven afectadas.
+> El plugin solo actúa sobre la pestaña donde presionaste START.
+
+---
+
+## Configuración
+
+### Pestaña Likes
+
+| Campo | Descripción |
+|---|---|
+| Cantidad (min – max) | Rango de likes por ráfaga |
+| Pausa (seg) | Segundos de espera entre ráfagas |
+
+### Pestaña Comentarios
+
+| Campo | Descripción |
+|---|---|
+| JSON de comentarios | Array de strings: `["Hola!", "Qué live tan bueno"]` |
+| Pausa (seg) | Segundos entre cada comentario |
+| Repetir al acabar | Vuelve al primer comentario al terminar la lista |
+
+Los comentarios se escriben carácter a carácter. En el 40% de los mensajes se simulan errores de tipeo (letras de más, borrar y reescribir) para que se vea más orgánico.
+
+### Pestaña Claude
+
+| Campo | Descripción |
+|---|---|
+| Tu usuario de TikTok | Tu nombre de usuario — el plugin no responderá si el último mensaje fue tuyo |
+| API Key | Tu clave de Anthropic (`sk-ant-api03-...`) |
+| Prompt | Instrucción que se le da a Claude para generar la respuesta |
+| Pausa (seg) | Segundos entre cada llamada a Claude |
+
+Claude recibe como contexto los últimos 5 mensajes de hasta 10 usuarios del chat. Usa el modelo `claude-haiku-4-5`.
+
+> **Nota:** Comentarios y Claude son mutuamente excluyentes — activar uno desactiva el otro.
 
 ---
 
@@ -71,11 +96,11 @@ Esto crea `sheen-go.zip` con solo los archivos necesarios del plugin. Asegúrate
 ```
 sheen-go/
 ├── manifest.json   # Configuración del plugin (MV3)
-├── background.js   # Service worker: gestiona estado por pestaña
-├── content.js      # Inyectado en TikTok: overlay + simulación de tecla L
+├── background.js   # Service worker: estado por pestaña y llamadas a la API de Claude
+├── content.js      # Inyectado en TikTok: overlay, likes, comentarios, chat tracking
 ├── popup.html      # Panel del plugin
-├── popup.js        # Lógica del panel (Start / Stop)
-└── logo.png        # Ícono del plugin (debes agregarlo tú)
+├── popup.js        # Lógica del panel
+└── logo.png        # Ícono del plugin
 ```
 
 ---
@@ -83,4 +108,5 @@ sheen-go/
 ## Requisitos
 
 - Google Chrome (Manifest V3)
-- Estar en una página de TikTok (`tiktok.com`) para que el content script funcione
+- Estar en una página de TikTok (`tiktok.com`)
+- Para el módulo Claude: una API key válida de [Anthropic](https://console.anthropic.com/)

@@ -8,12 +8,27 @@ if exist sheen-go.zip (
     echo  [limpiando zip anterior]
 )
 
+if exist sheen-go\ (
+    rmdir /s /q sheen-go
+    echo  [limpiando carpeta temporal]
+)
+
+mkdir sheen-go
+copy manifest.json sheen-go\ >nul
+copy background.js sheen-go\ >nul
+copy content.js    sheen-go\ >nul
+copy popup.html    sheen-go\ >nul
+copy popup.js      sheen-go\ >nul
+copy logo.png      sheen-go\ >nul
+
 powershell -NoProfile -Command ^
-  "Compress-Archive -Path manifest.json, background.js, content.js, popup.html, popup.js, logo.png -DestinationPath sheen-go.zip -CompressionLevel Optimal"
+  "Compress-Archive -Path sheen-go -DestinationPath sheen-go.zip -CompressionLevel Optimal"
+
+rmdir /s /q sheen-go
 
 if %errorlevel% == 0 (
     echo.
-    echo  [OK] sheen-go.zip listo para subir a Chrome.
+    echo  [OK] sheen-go.zip listo ^(contiene carpeta sheen-go/^).
 ) else (
     echo.
     echo  [ERROR] Algo salio mal. Verifica que logo.png exista en esta carpeta.

@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Sheen Go",
-  "version": "1.0.0.1",
+  "version": "1.0.0.2",
   "description": "Reacting to Tiktok LIVE",
   "action": {
     "default_popup": "popup.html",
@@ -27,7 +27,7 @@
     "service_worker": "background.js"
   },
   "permissions": ["activeTab", "scripting", "storage", "tabs"],
-  "host_permissions": ["*://www.tiktok.com/*"],
+  "host_permissions": ["*://www.tiktok.com/*", "https://api.anthropic.com/*"],
   "web_accessible_resources": [
     {
       "resources": ["logo.png"],
