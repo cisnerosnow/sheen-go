@@ -7,12 +7,12 @@ const label           = document.getElementById('statusLabel');
 // Tab indicators
 const indLikes        = document.getElementById('indLikes');
 const indComments     = document.getElementById('indComments');
-const indClaude       = document.getElementById('indClaude');
+const indAi           = document.getElementById('indAi');
 
 // Feature toggles
 const likesEnabled    = document.getElementById('likesEnabled');
 const commentsEnabled = document.getElementById('commentsEnabled');
-const claudeEnabled   = document.getElementById('claudeEnabled');
+const aiEnabled       = document.getElementById('aiEnabled');
 
 // Likes
 const likesMin        = document.getElementById('likesMin');
@@ -27,12 +27,13 @@ const commentPauseMin = document.getElementById('commentPauseMin');
 const commentPauseMax = document.getElementById('commentPauseMax');
 const btnRepeat       = document.getElementById('btnRepeat');
 
-// Claude
+// AI
+const aiProvider      = document.getElementById('aiProvider');
 const myUsername      = document.getElementById('myUsername');
 const apiKey          = document.getElementById('apiKey');
-const claudePrompt    = document.getElementById('claudePrompt');
-const claudePauseMin  = document.getElementById('claudePauseMin');
-const claudePauseMax  = document.getElementById('claudePauseMax');
+const aiPrompt        = document.getElementById('aiPrompt');
+const aiPauseMin      = document.getElementById('aiPauseMin');
+const aiPauseMax      = document.getElementById('aiPauseMax');
 
 let currentTabId = null;
 let repeatActive = false;
@@ -52,24 +53,24 @@ document.querySelectorAll('.tab').forEach((tab) => {
 function updateIndicators() {
   indLikes.style.background    = likesEnabled.checked    ? '#00e676' : '#333';
   indComments.style.background = commentsEnabled.checked ? '#00e676' : '#333';
-  indClaude.style.background   = claudeEnabled.checked   ? '#00e676' : '#333';
+  indAi.style.background       = aiEnabled.checked       ? '#00e676' : '#333';
 }
 
 function updateDimming() {
   document.getElementById('likesCfg').classList.toggle('dimmed',    !likesEnabled.checked);
   document.getElementById('commentsCfg').classList.toggle('dimmed', !commentsEnabled.checked);
-  document.getElementById('claudeCfg').classList.toggle('dimmed',   !claudeEnabled.checked);
+  document.getElementById('aiCfg').classList.toggle('dimmed',       !aiEnabled.checked);
 }
 
 likesEnabled.addEventListener('change', () => { updateIndicators(); updateDimming(); saveConfig(); });
 
 commentsEnabled.addEventListener('change', () => {
-  if (commentsEnabled.checked) claudeEnabled.checked = false;
+  if (commentsEnabled.checked) aiEnabled.checked = false;
   updateIndicators(); updateDimming(); saveConfig();
 });
 
-claudeEnabled.addEventListener('change', () => {
-  if (claudeEnabled.checked) commentsEnabled.checked = false;
+aiEnabled.addEventListener('change', () => {
+  if (aiEnabled.checked) commentsEnabled.checked = false;
   updateIndicators(); updateDimming(); saveConfig();
 });
 
@@ -94,20 +95,20 @@ function parseComments() {
 function updateCommentCounter(sent) {
   const comments = parseComments();
   if (comments === null) {
-    commentCounter.textContent = '⚠ JSON inválido';
+    commentCounter.textContent = '⚠ Invalid JSON';
     commentCounter.className   = 'comment-counter error';
     return;
   }
   const n = comments.length;
   if (n === 0) { commentCounter.textContent = ''; commentCounter.className = 'comment-counter'; return; }
   if (sent >= n && !repeatActive) {
-    commentCounter.textContent = `✓ Todos enviados (${n}/${n})`;
+    commentCounter.textContent = `✓ All sent (${n}/${n})`;
     commentCounter.className   = 'comment-counter has-comments';
     return;
   }
   const next      = (sent % n) + 1;
   const remaining = n - (sent % n);
-  commentCounter.textContent = `Mensaje ${next} / ${n}  ·  ${remaining} restante${remaining !== 1 ? 's' : ''}`;
+  commentCounter.textContent = `Message ${next} / ${n}  ·  ${remaining} remaining`;
   commentCounter.className   = 'comment-counter has-comments';
 }
 
@@ -125,19 +126,20 @@ function getConfig() {
     commentsJson:     commentJson.value,
     commentPauseMin:  Math.max(1, parseInt(commentPauseMin.value) || 10),
     commentPauseMax:  Math.max(1, parseInt(commentPauseMax.value) || 15),
-    claudeEnabled:    claudeEnabled.checked,
+    aiEnabled:        aiEnabled.checked,
+    aiProvider:       aiProvider.value,
     myUsername:       myUsername.value.trim().replace(/^@/, ''),
     apiKey:           apiKey.value.trim(),
-    claudePrompt:     claudePrompt.value.trim(),
-    claudePauseMin:   Math.max(1, parseInt(claudePauseMin.value) || 20),
-    claudePauseMax:   Math.max(1, parseInt(claudePauseMax.value) || 40),
+    aiPrompt:         aiPrompt.value.trim(),
+    aiPauseMin:       Math.max(1, parseInt(aiPauseMin.value) || 20),
+    aiPauseMax:       Math.max(1, parseInt(aiPauseMax.value) || 40),
   };
 }
 
 function applyConfig(cfg) {
   if (cfg.likesEnabled    != null) likesEnabled.checked    = cfg.likesEnabled;
   if (cfg.commentsEnabled != null) commentsEnabled.checked = cfg.commentsEnabled;
-  if (cfg.claudeEnabled   != null) claudeEnabled.checked   = cfg.claudeEnabled;
+  if (cfg.aiEnabled       != null) aiEnabled.checked       = cfg.aiEnabled ?? cfg.claudeEnabled;
   likesMin.value = cfg.likesMin ?? 10;
   likesMax.value = cfg.likesMax ?? 20;
   pauseMin.value = cfg.pauseMin ?? 20;
@@ -147,9 +149,11 @@ function applyConfig(cfg) {
   if (cfg.commentPauseMax != null) commentPauseMax.value = cfg.commentPauseMax;
   if (cfg.myUsername      != null) myUsername.value      = cfg.myUsername;
   if (cfg.apiKey          != null) apiKey.value          = cfg.apiKey;
-  if (cfg.claudePrompt    != null) claudePrompt.value    = cfg.claudePrompt;
-  if (cfg.claudePauseMin  != null) claudePauseMin.value  = cfg.claudePauseMin;
-  if (cfg.claudePauseMax  != null) claudePauseMax.value  = cfg.claudePauseMax;
+  if (cfg.aiProvider      != null) aiProvider.value      = cfg.aiProvider ?? 'anthropic';
+  if (cfg.aiPrompt        != null) aiPrompt.value        = cfg.aiPrompt ?? cfg.claudePrompt;
+  // not: if no saved prompt, keep the default from HTML (already there)
+  if (cfg.aiPauseMin      != null) aiPauseMin.value      = cfg.aiPauseMin ?? cfg.claudePauseMin ?? 20;
+  if (cfg.aiPauseMax      != null) aiPauseMax.value      = cfg.aiPauseMax ?? cfg.claudePauseMax ?? 40;
   repeatActive = cfg.repeatComments ?? false;
   btnRepeat.classList.toggle('active', repeatActive);
   updateIndicators();
@@ -159,15 +163,15 @@ function applyConfig(cfg) {
 // --- Running state ---
 // Todos los inputs que se bloquean mientras corre
 const allInputs = [
-  likesEnabled, commentsEnabled, claudeEnabled,
+  likesEnabled, commentsEnabled, aiEnabled,
   likesMin, likesMax, pauseMin, pauseMax,
   commentJson, commentPauseMin, commentPauseMax,
-  myUsername, apiKey, claudePrompt, claudePauseMin, claudePauseMax,
+  aiProvider, myUsername, apiKey, aiPrompt, aiPauseMin, aiPauseMax,
 ];
 
 function setRunning(running, commentIndex = 0) {
   dot.classList.toggle('active', running);
-  label.textContent      = running ? 'Activo' : 'Inactivo';
+  label.textContent      = running ? 'Active' : 'Inactive';
   btnStart.style.display = running ? 'none'   : 'block';
   btnStop.style.display  = running ? 'block'  : 'none';
 
@@ -243,11 +247,11 @@ btnRepeat.addEventListener('click', () => {
 
 commentJson.addEventListener('input', () => { updateCommentCounter(0); saveConfig(); });
 
-[likesMin, likesMax, pauseMin, pauseMax, commentPauseMin, commentPauseMax, claudePauseMin, claudePauseMax].forEach((el) => {
+[likesMin, likesMax, pauseMin, pauseMax, commentPauseMin, commentPauseMax, aiPauseMin, aiPauseMax].forEach((el) => {
   el.addEventListener('change', saveConfig);
 });
 
-[myUsername, apiKey, claudePrompt].forEach((el) => {
+[aiProvider, myUsername, apiKey, aiPrompt].forEach((el) => {
   el.addEventListener('input', saveConfig);
 });
 

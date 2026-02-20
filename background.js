@@ -81,8 +81,33 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     return;
   }
 
-  if (action === 'callClaude') {
-    const { apiKey, systemPrompt, chatContext } = msg;
+  if (action === 'callAi') {
+    const { provider, apiKey, systemPrompt, chatContext } = msg;
+
+    if (provider === 'google') {
+      // Gemini API
+      fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: `${systemPrompt}\n\nContexto del chat:\n${chatContext}` }] }],
+          generationConfig: { maxOutputTokens: 150 },
+        }),
+      })
+        .then((r) => r.json())
+        .then((data) => {
+          console.log('[sheen-go ai bg] respuesta Gemini:', JSON.stringify(data));
+          const text = data.candidates?.[0]?.content?.parts?.[0]?.text ?? null;
+          sendResponse({ text });
+        })
+        .catch((err) => {
+          console.error('[sheen-go ai bg] error fetch Gemini:', err);
+          sendResponse({ text: null });
+        });
+      return true;
+    }
+
+    // Anthropic (default)
     fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -99,11 +124,11 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     })
       .then((r) => r.json())
       .then((data) => {
-        console.log('[sheen-go claude bg] respuesta API:', JSON.stringify(data));
+        console.log('[sheen-go ai bg] respuesta Anthropic:', JSON.stringify(data));
         sendResponse({ text: data.content?.[0]?.text ?? null });
       })
       .catch((err) => {
-        console.error('[sheen-go claude bg] error fetch:', err);
+        console.error('[sheen-go ai bg] error fetch Anthropic:', err);
         sendResponse({ text: null });
       });
     return true; // respuesta async

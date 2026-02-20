@@ -7,7 +7,7 @@
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
-      width: 260px;
+      width: 300px;
       background: #0e0e0e;
       font-family: 'Segoe UI', sans-serif;
       color: #fff;
@@ -155,16 +155,24 @@
     .full-input:focus { border-color: #fe2c55; }
     .full-input::placeholder { color: #3a3a3a; }
     .full-input:disabled { opacity: 0.4; cursor: not-allowed; }
+    .full-input:not([type="password"]):not([type="text"]) {
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23555' d='M6 8L2 4h8z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 8px center;
+      padding-right: 24px;
+    }
+    .full-input:disabled { opacity: 0.4; cursor: not-allowed; }
 
-    #claudePrompt {
+    #aiPrompt {
       width: 100%; background: #0e0e0e; border: 1px solid #333; border-radius: 5px;
       color: #fff; font-size: 11px; font-family: 'Segoe UI', sans-serif;
-      padding: 6px 8px; outline: none; resize: vertical; min-height: 84px;
+      padding: 6px 8px; outline: none; resize: vertical; min-height: 120px;
       line-height: 1.4; transition: border-color 0.2s;
     }
-    #claudePrompt:focus { border-color: #fe2c55; }
-    #claudePrompt::placeholder { color: #3a3a3a; }
-    #claudePrompt:disabled { opacity: 0.4; cursor: not-allowed; }
+    #aiPrompt:focus { border-color: #fe2c55; }
+    #aiPrompt:disabled { opacity: 0.4; cursor: not-allowed; }
 
     .claude-hint { font-size: 9px; color: #444; text-align: center; line-height: 1.5; }
 
@@ -187,7 +195,7 @@
 
   <div class="status-text">
     <span class="status-dot" id="dot"></span>
-    <span id="statusLabel">Inactivo</span>
+    <span id="statusLabel">Inactive</span>
   </div>
 
   <!-- Tabs -->
@@ -196,10 +204,10 @@
       <span class="tab-ind" id="indLikes"></span>Likes
     </button>
     <button class="tab" data-tab="comments">
-      <span class="tab-ind" id="indComments"></span>Comentarios
+      <span class="tab-ind" id="indComments"></span>Comments
     </button>
-    <button class="tab" data-tab="claude">
-      <span class="tab-ind" id="indClaude"></span>Claude
+    <button class="tab" data-tab="ai">
+      <span class="tab-ind" id="indAi"></span>AI
     </button>
   </div>
 
@@ -207,7 +215,7 @@
   <div class="panel" id="panel-likes">
     <div class="config">
       <div class="feat-row">
-        <span class="feat-label">Enviar likes</span>
+        <span class="feat-label">Send likes</span>
         <label class="switch">
           <input type="checkbox" id="likesEnabled" checked />
           <span class="slider"></span>
@@ -215,7 +223,7 @@
       </div>
       <div class="cfg" id="likesCfg">
         <div class="config-row">
-          <span class="config-label">❤ Cantidad</span>
+          <span class="config-label">❤ Amount</span>
           <div class="config-inputs">
             <input type="number" id="likesMin" value="10" min="1" max="999" />
             <span>–</span>
@@ -223,7 +231,7 @@
           </div>
         </div>
         <div class="config-row">
-          <span class="config-label">⏱ Pausa (seg)</span>
+          <span class="config-label">⏱ Pause (sec)</span>
           <div class="config-inputs">
             <input type="number" id="pauseMin" value="20" min="1" max="9999" />
             <span>–</span>
@@ -238,7 +246,7 @@
   <div class="panel hidden" id="panel-comments">
     <div class="config">
       <div class="feat-row">
-        <span class="feat-label">Enviar comentarios</span>
+        <span class="feat-label">Send comments</span>
         <label class="switch">
           <input type="checkbox" id="commentsEnabled" checked />
           <span class="slider"></span>
@@ -251,7 +259,7 @@
           placeholder='["Hola! 👋", "Qué bello live ✨", "Los quiero 💖"]'
         ></textarea>
         <div class="config-row">
-          <span class="config-label">⏱ Pausa (seg)</span>
+          <span class="config-label">⏱ Pause (sec)</span>
           <div class="config-inputs">
             <input type="number" id="commentPauseMin" value="10" min="1" max="9999" />
             <span>–</span>
@@ -259,23 +267,28 @@
           </div>
         </div>
         <div class="comment-counter" id="commentCounter"></div>
-        <button class="btn-repeat" id="btnRepeat">↻ Repetir al acabar</button>
+        <button class="btn-repeat" id="btnRepeat">↻ Repeat when done</button>
       </div>
     </div>
   </div>
 
-  <!-- Panel: Claude -->
-  <div class="panel hidden" id="panel-claude">
+  <!-- Panel: AI -->
+  <div class="panel hidden" id="panel-ai">
     <div class="config">
       <div class="feat-row">
-        <span class="feat-label">Responder con Claude</span>
+        <span class="feat-label">Reply with AI</span>
         <label class="switch">
-          <input type="checkbox" id="claudeEnabled" />
+          <input type="checkbox" id="aiEnabled" />
           <span class="slider"></span>
         </label>
       </div>
-      <div class="cfg" id="claudeCfg">
-        <span class="input-label">Tu usuario de TikTok</span>
+      <div class="cfg" id="aiCfg">
+        <span class="input-label">Provider</span>
+        <select id="aiProvider" class="full-input">
+          <option value="anthropic">Anthropic (Claude)</option>
+          <option value="google">Google (Gemini)</option>
+        </select>
+        <span class="input-label">Your TikTok username</span>
         <input
           type="text"
           id="myUsername"
@@ -288,23 +301,23 @@
           type="password"
           id="apiKey"
           class="full-input"
-          placeholder="sk-ant-api03-..."
+          placeholder="sk-ant-api03-... o AIza..."
           autocomplete="off"
         />
         <span class="input-label">Prompt</span>
         <textarea
-          id="claudePrompt"
-          placeholder="Contesta dependiendo de la conversacion dada. Te estoy dando la conversacion y tu opina algo que tenga que ver. Si no tienes el contexto por lo menos contestale a alguno de los usuarios de esa conversacion tagueandolo con un &quot;@&quot;. no uses buena ortigrafia. Responde directo. con una sola frase."
-        ></textarea>
+          id="aiPrompt"
+          rows="5"
+        >Contesta dependiendo de la conversacion dada. Te estoy dando la conversacion y tu opina algo que tenga que ver. Si no tienes el contexto por lo menos contestale a alguno de los usuarios de esa conversacion tagueandolo con un "@". no uses buena ortigrafia. Responde directo. con una sola frase.</textarea>
         <div class="config-row">
-          <span class="config-label">⏱ Pausa (seg)</span>
+          <span class="config-label">⏱ Pause (sec)</span>
           <div class="config-inputs">
-            <input type="number" id="claudePauseMin" value="20" min="1" max="9999" />
+            <input type="number" id="aiPauseMin" value="20" min="1" max="9999" />
             <span>–</span>
-            <input type="number" id="claudePauseMax" value="40" min="1" max="9999" />
+            <input type="number" id="aiPauseMax" value="40" min="1" max="9999" />
           </div>
         </div>
-        <div class="claude-hint">Modelo: claude-haiku · usa el chat acumulado como contexto</div>
+        <div class="claude-hint">Model: claude-haiku / gemini-2.5-flash · uses accumulated chat as context</div>
       </div>
     </div>
   </div>
@@ -312,7 +325,7 @@
   <button class="btn btn-start" id="btnStart">▶ START</button>
   <button class="btn btn-stop" id="btnStop">■ STOP</button>
 
-  <div class="made-by">Made by @cisnerosnow &nbsp;·&nbsp; v. 1.0.0.2</div>
+  <div class="made-by">Made by @cisnerosnow &nbsp;·&nbsp; v. 1.0.0.3</div>
 
   <script src="popup.js"></script>
 </body>

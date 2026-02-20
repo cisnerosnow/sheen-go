@@ -17,8 +17,8 @@ Plugin de Chrome para automatizar interacciones en TikTok Lives: likes, comentar
 Al presionar **START**, el plugin actúa sobre la pestaña activa de TikTok Live con tres módulos independientes que se pueden activar o desactivar por separado:
 
 - **Likes** — simula mantener presionada la tecla `L`, enviando ráfagas de likes de forma continua.
-- **Comentarios** — envía una lista de comentarios (formato JSON) uno por uno, con tipeo carácter a carácter y errores orgánicos opcionales para que se vea natural.
-- **Claude** — lee el chat acumulado y genera respuestas automáticas usando la API de Claude (Haiku), ignorando los mensajes del propio usuario.
+- **Comments** — envía una lista de comentarios (formato JSON) uno por uno, con tipeo carácter a carácter y errores orgánicos opcionales para que se vea natural.
+- **AI** — lee el chat acumulado y genera respuestas automáticas usando IA (Claude o Gemini), ignorando los mensajes del propio usuario.
 
 Al activarse muestra una cuenta regresiva de 5 segundos antes de comenzar.
 
@@ -63,31 +63,36 @@ Al activarse muestra una cuenta regresiva de 5 segundos antes de comenzar.
 
 | Campo | Descripción |
 |---|---|
-| Cantidad (min – max) | Rango de likes por ráfaga |
-| Pausa (seg) | Segundos de espera entre ráfagas |
+| Amount (min – max) | Rango de likes por ráfaga |
+| Pause (sec) | Segundos de espera entre ráfagas |
 
-### Pestaña Comentarios
+### Pestaña Comments
 
 | Campo | Descripción |
 |---|---|
 | JSON de comentarios | Array de strings: `["Hola!", "Qué live tan bueno"]` |
-| Pausa (seg) | Segundos entre cada comentario |
-| Repetir al acabar | Vuelve al primer comentario al terminar la lista |
+| Pause (sec) | Segundos entre cada comentario |
+| Repeat when done | Vuelve al primer comentario al terminar la lista |
 
 Los comentarios se escriben carácter a carácter. En el 40% de los mensajes se simulan errores de tipeo (letras de más, borrar y reescribir) para que se vea más orgánico.
 
-### Pestaña Claude
+### Pestaña AI
 
 | Campo | Descripción |
 |---|---|
-| Tu usuario de TikTok | Tu nombre de usuario — el plugin no responderá si el último mensaje fue tuyo |
-| API Key | Tu clave de Anthropic (`sk-ant-api03-...`) |
-| Prompt | Instrucción que se le da a Claude para generar la respuesta |
-| Pausa (seg) | Segundos entre cada llamada a Claude |
+| Provider | `Anthropic (Claude)` o `Google (Gemini)` |
+| Your TikTok username | Tu nombre de usuario — el plugin no responderá si el último mensaje fue tuyo |
+| API Key | Tu clave (`sk-ant-api03-...` para Anthropic, `AIza...` para Google) |
+| Prompt | Instrucción que se le da a la IA para generar la respuesta |
+| Pause (sec) | Segundos entre cada llamada |
 
-Claude recibe como contexto los últimos 5 mensajes de hasta 10 usuarios del chat. Usa el modelo `claude-haiku-4-5`.
+La IA recibe como contexto los últimos 5 mensajes de hasta 10 usuarios del chat.
 
-> **Nota:** Comentarios y Claude son mutuamente excluyentes — activar uno desactiva el otro.
+**Modelos utilizados:**
+- Anthropic: `claude-haiku-4-5-20251001`
+- Google: `gemini-2.5-flash`
+
+> **Nota:** Comments y AI son mutuamente excluyentes — activar uno desactiva el otro.
 
 ---
 
@@ -96,7 +101,7 @@ Claude recibe como contexto los últimos 5 mensajes de hasta 10 usuarios del cha
 ```
 sheen-go/
 ├── manifest.json   # Configuración del plugin (MV3)
-├── background.js   # Service worker: estado por pestaña y llamadas a la API de Claude
+├── background.js   # Service worker: estado por pestaña y llamadas a las APIs
 ├── content.js      # Inyectado en TikTok: overlay, likes, comentarios, chat tracking
 ├── popup.html      # Panel del plugin
 ├── popup.js        # Lógica del panel
@@ -109,4 +114,4 @@ sheen-go/
 
 - Google Chrome (Manifest V3)
 - Estar en una página de TikTok (`tiktok.com`)
-- Para el módulo Claude: una API key válida de [Anthropic](https://console.anthropic.com/)
+- Para el módulo AI: una API key válida de [Anthropic](https://console.anthropic.com/) o [Google AI Studio](https://aistudio.google.com/)

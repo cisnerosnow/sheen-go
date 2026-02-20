@@ -18,11 +18,12 @@ let cfgComments          = [];
 let cfgRepeatComments    = false;
 let cfgCommentPauseMin   = 10;
 let cfgCommentPauseMax   = 15;
-let cfgClaudeEnabled     = false;
+let cfgAiEnabled         = false;
+let cfgAiProvider        = 'anthropic';
 let cfgApiKey            = '';
-let cfgClaudePrompt      = '';
-let cfgClaudePauseMin    = 20;
-let cfgClaudePauseMax    = 40;
+let cfgAiPrompt          = '';
+let cfgAiPauseMin        = 20;
+let cfgAiPauseMax        = 40;
 let cfgMyUsername        = '';
 
 function randInt(min, max) {
@@ -274,30 +275,30 @@ async function doCommentBurst() {
   }
 }
 
-// ---------- Claude burst ----------
+// ---------- AI burst ----------
 
-function callClaude(apiKey, systemPrompt, chatContext) {
+function callAi(provider, apiKey, systemPrompt, chatContext) {
   return new Promise((resolve) => {
     chrome.runtime.sendMessage(
-      { action: 'callClaude', apiKey, systemPrompt, chatContext },
+      { action: 'callAi', provider, apiKey, systemPrompt, chatContext },
       (res) => { void chrome.runtime.lastError; resolve(res?.text ?? null); }
     );
   });
 }
 
-async function doClaudeBurst() {
-  if (!running || !cfgClaudeEnabled || !cfgApiKey) {
-    console.log('[sheen-go claude] salida temprana — running:', running, 'claudeEnabled:', cfgClaudeEnabled, 'apiKey:', !!cfgApiKey);
+async function doAiBurst() {
+  if (!running || !cfgAiEnabled || !cfgApiKey) {
+    console.log('[sheen-go ai] salida temprana — running:', running, 'aiEnabled:', cfgAiEnabled, 'apiKey:', !!cfgApiKey);
     return;
   }
 
   // Si el último mensaje del chat fue del propio usuario, esperar a que alguien más hable
   if (cfgMyUsername && lastSenderUsername &&
       lastSenderUsername.toLowerCase() === cfgMyUsername.toLowerCase()) {
-    console.log('[sheen-go claude] último mensaje es del propio usuario (@' + lastSenderUsername + '), esperando...');
+    console.log('[sheen-go ai] último mensaje es del propio usuario (@' + lastSenderUsername + '), esperando...');
     if (running) {
-      const delay = randInt(cfgClaudePauseMin, cfgClaudePauseMax) * 1000;
-      claudeBurstTimeout = setTimeout(doClaudeBurst, delay);
+      const delay = randInt(cfgAiPauseMin, cfgAiPauseMax) * 1000;
+      claudeBurstTimeout = setTimeout(doAiBurst, delay);
     }
     return;
   }
@@ -309,23 +310,23 @@ async function doClaudeBurst() {
     if (lines.length >= 10) break;
   }
 
-  console.log('[sheen-go claude] contexto del chat (' + lines.length + ' usuarios):\n' + (lines.join('\n') || '(vacío)'));
+  console.log('[sheen-go ai] contexto del chat (' + lines.length + ' usuarios):\n' + (lines.join('\n') || '(vacío)'));
 
   if (lines.length > 0) {
-    console.log('[sheen-go claude] enviando a Claude con prompt:', cfgClaudePrompt);
-    const text = await callClaude(cfgApiKey, cfgClaudePrompt, lines.join('\n'));
-    console.log('[sheen-go claude] respuesta:', text);
+    console.log('[sheen-go ai] enviando a ' + cfgAiProvider + ' con prompt:', cfgAiPrompt);
+    const text = await callAi(cfgAiProvider, cfgApiKey, cfgAiPrompt, lines.join('\n'));
+    console.log('[sheen-go ai] respuesta:', text);
     if (text && running) {
       await typeTextAndClick(text.trim(), 80, Math.random() < 0.4);
     }
   } else {
-    console.log('[sheen-go claude] no hay mensajes de otros usuarios aún, saltando llamada');
+    console.log('[sheen-go ai] no hay mensajes de otros usuarios aún, saltando llamada');
   }
 
   if (running) {
-    const delay = randInt(cfgClaudePauseMin, cfgClaudePauseMax) * 1000;
-    console.log('[sheen-go claude] próxima llamada en', delay / 1000, 's');
-    claudeBurstTimeout = setTimeout(doClaudeBurst, delay);
+    const delay = randInt(cfgAiPauseMin, cfgAiPauseMax) * 1000;
+    console.log('[sheen-go ai] próxima llamada en', delay / 1000, 's');
+    claudeBurstTimeout = setTimeout(doAiBurst, delay);
   }
 }
 
@@ -413,12 +414,13 @@ chrome.runtime.onMessage.addListener((msg) => {
       cfgRepeatComments    = msg.config.repeatComments  ?? false;
       cfgCommentPauseMin   = msg.config.commentPauseMin ?? 10;
       cfgCommentPauseMax   = msg.config.commentPauseMax ?? 15;
-      cfgClaudeEnabled     = msg.config.claudeEnabled   ?? false;
-      cfgApiKey            = msg.config.apiKey          ?? '';
-      cfgClaudePrompt      = msg.config.claudePrompt    ?? '';
-      cfgClaudePauseMin    = msg.config.claudePauseMin  ?? 20;
-      cfgClaudePauseMax    = msg.config.claudePauseMax  ?? 40;
-      cfgMyUsername        = msg.config.myUsername      ?? '';
+      cfgAiEnabled         = msg.config.aiEnabled         ?? msg.config.claudeEnabled ?? false;
+      cfgAiProvider        = msg.config.aiProvider        ?? 'anthropic';
+      cfgApiKey            = msg.config.apiKey            ?? '';
+      cfgAiPrompt          = msg.config.aiPrompt          ?? msg.config.claudePrompt ?? '';
+      cfgAiPauseMin        = msg.config.aiPauseMin        ?? 20;
+      cfgAiPauseMax        = msg.config.aiPauseMax        ?? 40;
+      cfgMyUsername        = msg.config.myUsername        ?? '';
     }
     // BUG FIX: si es una reanudación tras recarga, continuar desde el índice guardado
     commentIndex = msg.resumeCommentIndex ?? 0;
@@ -438,10 +440,10 @@ chrome.runtime.onMessage.addListener((msg) => {
         commentBurstTimeout = setTimeout(doCommentBurst, offset);
       }
 
-      // Claude: desfase mayor (5–10 s) para no coincidir con todo lo anterior
-      if (cfgClaudeEnabled && cfgApiKey) {
-        const claudeOffset = randInt(5000, 10000);
-        claudeBurstTimeout = setTimeout(doClaudeBurst, claudeOffset);
+      // AI: desfase mayor (5–10 s) para no coincidir con todo lo anterior
+      if (cfgAiEnabled && cfgApiKey) {
+        const aiOffset = randInt(5000, 10000);
+        claudeBurstTimeout = setTimeout(doAiBurst, aiOffset);
       }
     });
   }
