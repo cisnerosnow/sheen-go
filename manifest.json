@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Sheen Go",
-  "version": "1.0.0.3",
-  "description": "Reacting to Tiktok LIVE",
+  "version": "1.0.0.4",
+  "description": "Sheen-Go",
   "action": {
     "default_popup": "popup.html",
     "default_title": "Sheen Go",
@@ -19,7 +19,7 @@
   },
   "content_scripts": [
     {
-      "matches": ["*://www.tiktok.com/*"],
+      "matches": ["*://www.tiktok.com/*", "*://www.youtube.com/*"],
       "js": ["content.js"]
     }
   ],
@@ -27,11 +27,11 @@
     "service_worker": "background.js"
   },
   "permissions": ["activeTab", "scripting", "storage", "tabs"],
-  "host_permissions": ["*://www.tiktok.com/*", "https://api.anthropic.com/*", "https://generativelanguage.googleapis.com/*"],
+  "host_permissions": ["*://www.tiktok.com/*", "*://www.youtube.com/*", "https://api.anthropic.com/*", "https://generativelanguage.googleapis.com/*"],
   "web_accessible_resources": [
     {
       "resources": ["logo.png"],
-      "matches": ["*://www.tiktok.com/*"]
+      "matches": ["*://www.tiktok.com/*", "*://www.youtube.com/*"]
     }
   ]
 }

@@ -1,3 +1,6 @@
+// Plataforma: 'tiktok' o 'youtube'
+const PLATFORM = window.location.hostname.includes('youtube.com') ? 'youtube' : 'tiktok';
+
 let running      = false;
 let burstTimeout = null;
 let burstIntvl   = null;
@@ -120,6 +123,12 @@ function removeOverlay() {
 // ---------- Key simulation (likes) ----------
 
 function pressL() {
+  if (PLATFORM === 'youtube') {
+    // YouTube: no soportado por ahora
+    return;
+  }
+
+  // TikTok: simular tecla L
   const target = document.activeElement || document.body;
 
   ['keydown', 'keypress', 'keyup'].forEach((type) => {
@@ -133,7 +142,39 @@ function pressL() {
 // ---------- Comment simulation ----------
 
 async function typeTextAndClick(text, delay = 80, humanize = false) {
-  const editable = document.querySelector('div[contenteditable="plaintext-only"]');
+  let editable;
+  let sendButton;
+
+  if (PLATFORM === 'youtube') {
+    // YouTube Live selectors
+    console.log('[sheen-go youtube] intentando enviar comentario:', text);
+    editable = document.querySelector('#input.style-scope.yt-live-chat-text-input-field-renderer');
+    sendButton = document.querySelector('#send-button button');
+    console.log('[sheen-go youtube] input:', editable);
+    console.log('[sheen-go youtube] sendButton:', sendButton);
+
+    if (!editable || !sendButton) {
+      console.error('[sheen-go youtube] No se encontró el input o el botón');
+      // Intentar selectores alternativos
+      editable = document.querySelector('#input');
+      sendButton = document.querySelector('yt-button-renderer#send-button button, #send-button button');
+      console.log('[sheen-go youtube] intentando selectores alternativos - input:', editable, 'button:', sendButton);
+      if (!editable || !sendButton) return;
+    }
+
+    editable.focus();
+    editable.textContent = text;
+    editable.dispatchEvent(new Event('input', { bubbles: true }));
+    editable.dispatchEvent(new Event('change', { bubbles: true }));
+
+    await new Promise(r => setTimeout(r, 200)); // breve pausa antes de enviar
+    sendButton.click();
+    console.log('[sheen-go youtube] mensaje enviado');
+    return;
+  }
+
+  // TikTok: lógica original de tipeo carácter por carácter
+  editable = document.querySelector('div[contenteditable="plaintext-only"]');
   if (!editable) return;
 
   editable.focus();
@@ -229,9 +270,8 @@ function doBurst() {
   const likes = randInt(cfgLikesMin, cfgLikesMax);
   let sent = 0;
 
-  burstIntvl = setInterval(() => {
+  function sendNext() {
     if (!running || sent >= likes) {
-      clearInterval(burstIntvl);
       burstIntvl = null;
       if (running) {
         const delay = randInt(cfgPauseMin, cfgPauseMax) * 1000;
@@ -241,7 +281,10 @@ function doBurst() {
     }
     pressL();
     sent++;
-  }, 100);
+    burstIntvl = setTimeout(sendNext, randInt(100, 500));
+  }
+
+  sendNext();
 }
 
 // ---------- Burst logic (comentarios) ----------
@@ -341,6 +384,43 @@ let chatPollInterval    = null;
 // Igual que la función del usuario pero devuelve también el data-index
 // para poder detectar mensajes nuevos sin re-procesar los ya contados.
 function obtenerPenultimo() {
+  if (PLATFORM === 'youtube') {
+    // YouTube Live chat - intentar varios selectores posibles
+    let messages = document.querySelectorAll('div#content.style-scope.yt-live-chat-text-message-renderer');
+    if (messages.length < 2) {
+      // Intentar selector alternativo
+      messages = document.querySelectorAll('yt-live-chat-text-message-renderer');
+    }
+    if (messages.length < 2) {
+      console.log('[sheen-go youtube] no hay suficientes mensajes, encontrados:', messages.length);
+      return null;
+    }
+
+    const penultimo = messages[messages.length - 2];
+    console.log('[sheen-go youtube] penultimo elemento:', penultimo);
+
+    const usernameElement = penultimo.querySelector('#author-name');
+    const username = usernameElement ? usernameElement.textContent.trim() : null;
+    console.log('[sheen-go youtube] username:', username);
+
+    const messageElement = penultimo.querySelector('#message');
+    let message = null;
+
+    if (messageElement) {
+      const clone = messageElement.cloneNode(true);
+      clone.querySelectorAll('img').forEach(img => {
+        const alt = img.getAttribute('alt') || '';
+        img.replaceWith(alt);
+      });
+      message = clone.textContent.trim();
+    }
+    console.log('[sheen-go youtube] message:', message);
+
+    // Usar timestamp como "index" para deduplicación
+    return [username, message, Date.now()];
+  }
+
+  // TikTok: lógica original
   const contenedores = Array.from(document.querySelectorAll('[data-index]'));
   const ordenados    = contenedores.sort(
     (a, b) => Number(a.dataset.index) - Number(b.dataset.index)
@@ -357,6 +437,9 @@ function obtenerPenultimo() {
 }
 
 function tickChat() {
+  if (PLATFORM === 'youtube' && Math.random() < 0.05) {
+    console.log('[sheen-go youtube] tickChat corriendo, URL:', window.location.href);
+  }
   const result = obtenerPenultimo();
   if (!result) return;
 
@@ -431,7 +514,9 @@ chrome.runtime.onMessage.addListener((msg) => {
       running = true;
 
       if (cfgLikesEnabled) doBurst();
-      startChatTracking();
+
+      // Solo trackear el chat si AI está activo
+      if (cfgAiEnabled) startChatTracking();
 
       // Comentarios: desfase 2–5 s respecto a likes
       if (cfgCommentsEnabled && cfgComments.length > 0 &&
