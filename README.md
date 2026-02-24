@@ -18,7 +18,7 @@ Al presionar **START**, el plugin actúa sobre la pestaña activa de TikTok Live
 
 - **Likes** — simula mantener presionada la tecla `L`, enviando ráfagas de likes de forma continua.
 - **Comments** — envía una lista de comentarios (formato JSON) uno por uno, con tipeo carácter a carácter y errores orgánicos opcionales para que se vea natural.
-- **AI** — lee el chat acumulado y genera respuestas automáticas usando IA (Claude o Gemini), ignorando los mensajes del propio usuario.
+- **AI** — lee el chat acumulado y genera respuestas automáticas usando IA (Claude, Gemini o OpenAI "chatGPT"), ignorando los mensajes del propio usuario.
 
 Al activarse muestra una cuenta regresiva de 5 segundos antes de comenzar.
 
@@ -80,9 +80,9 @@ Los comentarios se escriben carácter a carácter. En el 40% de los mensajes se 
 
 | Campo | Descripción |
 |---|---|
-| Provider | `Anthropic (Claude)` o `Google (Gemini)` |
+| Provider | `Anthropic (Claude)`, `Google (Gemini)` o `OpenAI` |
 | Your TikTok username | Tu nombre de usuario — el plugin no responderá si el último mensaje fue tuyo |
-| API Key | Tu clave (`sk-ant-api03-...` para Anthropic, `AIza...` para Google) |
+| API Key | Tu clave (`sk-ant-api03-...` para Anthropic, `AIza...` para Google, `sk-proj-...` para OpenAI) |
 | Prompt | Instrucción que se le da a la IA para generar la respuesta |
 | Pause (sec) | Segundos entre cada llamada |
 
@@ -91,6 +91,7 @@ La IA recibe como contexto los últimos 5 mensajes de hasta 10 usuarios del chat
 **Modelos utilizados:**
 - Anthropic: `claude-haiku-4-5-20251001`
 - Google: `gemini-2.5-flash`
+- OpenAI: `gpt-4o-mini`
 
 > **Nota:** Comments y AI son mutuamente excluyentes — activar uno desactiva el otro.
 
@@ -114,4 +115,4 @@ sheen-go/
 
 - Google Chrome (Manifest V3)
 - Estar en una página de TikTok (`tiktok.com`)
-- Para el módulo AI: una API key válida de [Anthropic](https://console.anthropic.com/) o [Google AI Studio](https://aistudio.google.com/)
+- Para el módulo AI: una API key válida de [Anthropic](https://console.anthropic.com/), [Google AI Studio](https://aistudio.google.com/) o [OpenAI](https://platform.openai.com/api-keys)

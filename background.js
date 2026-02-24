@@ -84,6 +84,36 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
   if (action === 'callAi') {
     const { provider, apiKey, systemPrompt, chatContext } = msg;
 
+    if (provider === 'openai') {
+      // OpenAI API (ChatGPT)
+      fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: `Contexto del chat:\n${chatContext}` },
+          ],
+          max_tokens: 150,
+        }),
+      })
+        .then((r) => r.json())
+        .then((data) => {
+          console.log('[sheen-go ai bg] respuesta OpenAI:', JSON.stringify(data));
+          const text = data.choices?.[0]?.message?.content ?? null;
+          sendResponse({ text });
+        })
+        .catch((err) => {
+          console.error('[sheen-go ai bg] error fetch OpenAI:', err);
+          sendResponse({ text: null });
+        });
+      return true;
+    }
+
     if (provider === 'google') {
       // Gemini API
       fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
