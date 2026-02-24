@@ -27,7 +27,7 @@
     "service_worker": "background.js"
   },
   "permissions": ["activeTab", "scripting", "storage", "tabs"],
-  "host_permissions": ["*://www.tiktok.com/*", "*://www.youtube.com/*", "https://api.anthropic.com/*", "https://generativelanguage.googleapis.com/*"],
+  "host_permissions": ["*://www.tiktok.com/*", "*://www.youtube.com/*", "https://api.anthropic.com/*", "https://generativelanguage.googleapis.com/*", "https://api.openai.com/*"],
   "web_accessible_resources": [
     {
       "resources": ["logo.png"],
