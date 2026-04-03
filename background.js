@@ -83,7 +83,6 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
 
   if (action === 'callAi') {
     const { provider, apiKey, systemPrompt, chatContext } = msg;
-
     if (provider === 'google') {
       // Gemini API
       fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {

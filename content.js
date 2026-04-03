@@ -422,6 +422,7 @@ function obtenerPenultimo() {
 
   // TikTok: lógica original
   const contenedores = Array.from(document.querySelectorAll('[data-index]'));
+  if (contenedores.length === 0) return null;
   const ordenados    = contenedores.sort(
     (a, b) => Number(a.dataset.index) - Number(b.dataset.index)
   );
@@ -430,8 +431,17 @@ function obtenerPenultimo() {
 
   const username   = penultimo.querySelector('[data-e2e="message-owner-name"]')
     ?.textContent.trim() || null;
-  const comentario = penultimo.querySelector('div.w-full.break-words.align-middle.cursor-pointer')
-    ?.textContent.trim() || null;
+
+  // Intentar varios selectores posibles para el texto del mensaje
+  const comentario =
+    penultimo.querySelector('[data-e2e="chat-message-text"]')?.textContent.trim() ||
+    penultimo.querySelector('[data-e2e="message-content"]')?.textContent.trim()   ||
+    penultimo.querySelector('div.w-full.break-words.align-middle.cursor-pointer')?.textContent.trim() ||
+    (() => {
+      // Fallback: texto total del contenedor menos el nombre de usuario
+      const full = penultimo.textContent.trim();
+      return username ? full.replace(username, '').trim() : full;
+    })() || null;
 
   return [username, comentario, Number(penultimo.dataset.index)];
 }
